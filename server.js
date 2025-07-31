@@ -12,12 +12,12 @@ require("dotenv").config();
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const dashboardRoutes = require("./routes/dashboard");
-// const cpdRoutes = require("./routes/cpd");
-// const eventsRoutes = require("./routes/events");
-// const financialRoutes = require("./routes/financial");
-// const votingRoutes = require("./routes/voting");
-// const chatRoutes = require("./routes/chat");
-// const notificationRoutes = require("./routes/notifications");
+const cpdRoutes = require("./routes/cpd");
+const eventsRoutes = require("./routes/events");
+const financialRoutes = require("./routes/financial");
+const votingRoutes = require("./routes/voting");
+const chatRoutes = require("./routes/chat");
+const notificationRoutes = require("./routes/notifications");
 
 // Import middleware
 const { errorHandler } = require("./middleware/errorHandler");
@@ -65,12 +65,12 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", authenticateToken, userRoutes);
 app.use("/api/dashboard", authenticateToken, dashboardRoutes);
-// app.use("/api/cpd", authenticateToken, cpdRoutes);
-// app.use("/api/events", authenticateToken, eventsRoutes);
-// app.use("/api/financial", authenticateToken, financialRoutes);
-// app.use("/api/voting", authenticateToken, votingRoutes);
-// app.use("/api/chat", authenticateToken, chatRoutes);
-// app.use("/api/notifications", authenticateToken, notificationRoutes);
+app.use("/api/cpd", authenticateToken, cpdRoutes);
+app.use("/api/events", authenticateToken, eventsRoutes);
+app.use("/api/financial", authenticateToken, financialRoutes);
+app.use("/api/voting", authenticateToken, votingRoutes);
+app.use("/api/chat", authenticateToken, chatRoutes);
+app.use("/api/notifications", authenticateToken, notificationRoutes);
 
 // Socket.IO for real-time features
 io.use((socket, next) => {
