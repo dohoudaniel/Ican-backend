@@ -24,6 +24,12 @@ const { errorHandler } = require("./middleware/errorHandler");
 const { authenticateToken } = require("./middleware/auth");
 
 const app = express();
+
+// Trust proxy for production deployment (Render, Heroku, etc.)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
@@ -36,11 +42,30 @@ const PORT = process.env.PORT || 5000;
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/ican-hackathon";
 
-// Rate limiting
+// Rate limiting with proper configuration
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
+  message: {
+    success: false,
+    message: "Too many requests from this IP, please try again later.",
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip rate limiting for health checks
+  skip: (req) => req.path === "/health",
+});
+
+// Auth-specific rate limiting (more restrictive)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 auth requests per windowMs
+  message: {
+    success: false,
+    message: "Too many authentication attempts, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Middleware
@@ -62,7 +87,7 @@ app.get("/health", (req, res) => {
 });
 
 // API Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/user", authenticateToken, userRoutes);
 app.use("/api/dashboard", authenticateToken, dashboardRoutes);
 app.use("/api/cpd", authenticateToken, cpdRoutes);
