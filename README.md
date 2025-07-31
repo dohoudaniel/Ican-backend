@@ -9,7 +9,7 @@
 </div>
 
 <div align="center">
-  <h3>🏆 ICAN Hackathon 2024 - Team 1 Backend API</h3>
+  <h3>🏆 ICAN Hackathon 2025 - Team 1 Backend API</h3>
   <p><strong>A Comprehensive RESTful API for the Institute of Chartered Accountants of Nigeria Member Portal</strong></p>
 </div>
 
@@ -536,7 +536,7 @@ curl http://localhost:5000/health
 {
   "success": true,
   "message": "ICAN API Server is running",
-  "timestamp": "2024-01-15T10:30:00.000Z",
+  "timestamp": "2025-01-15T10:30:00.000Z",
   "environment": "development"
 }
 ```
@@ -1064,13 +1064,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### **Contact Information**
 
-- **Team Lead**: [Your Name](mailto:your.email@example.com)
+- **Team**:
+  - [Daniel Dohou](https://dohoudanielfavour.vercel.app)
+  - [Joshua Origiosa](https://github.com/Uni-Jay/)
 - **Project Repository**: [GitHub Repository](https://github.com/your-org/ican-hackathon)
 - **Live API**: [https://team1-ican-hackathon-api.onrender.com](https://team1-ican-hackathon-api.onrender.com)
 
 ---
 
 <div align="center">
-  <p><strong>Built with ❤️ for ICAN Hackathon 2024</strong></p>
-  <p>© 2024 Team 1 - All Rights Reserved</p>
+  <p><strong>Built with ❤️ for ICAN Hackathon 2025</strong></p>
+  <p>© 2025 Team 1 - All Rights Reserved</p>
 </div>
