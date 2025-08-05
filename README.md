@@ -1,4 +1,4 @@
-# ICAN ExamHack - Backend API
+# ICAN EduHack - Backend API
 
 <div align="center">
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
@@ -40,7 +40,7 @@
 
 ## 🎯 Overview
 
-The ICAN ExamHack Backend API is a robust, scalable Node.js application built with Express.js and MongoDB. It serves as the comprehensive backend infrastructure for the ICAN member portal, providing secure authentication, real-time communication, financial services, educational content management, and administrative functionality.
+The ICAN EduHack Backend API is a robust, scalable Node.js application built with Express.js and MongoDB. It serves as the comprehensive backend infrastructure for the ICAN member portal, providing secure authentication, real-time communication, financial services, educational content management, and administrative functionality.
 
 ### 🌟 Key Highlights
 
@@ -1067,6 +1067,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Team**:
   - [Daniel Dohou](https://dohoudanielfavour.vercel.app)
   - [Joshua Origiosa](https://github.com/Uni-Jay/)
+  - [Oluwakorede Atansuyi](https://github.com/koatansuyi)
 - **Project Repository**: [GitHub Repository](https://github.com/your-org/ican-hackathon)
 - **Live API**: [https://team1-ican-hackathon-api.onrender.com](https://team1-ican-hackathon-api.onrender.com)
 
