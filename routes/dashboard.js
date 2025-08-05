@@ -1,5 +1,6 @@
 const express = require("express");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { asyncHandler, AppError } = require("../middleware/errorHandler");
 
 const router = express.Router();
@@ -20,13 +21,57 @@ router.get(
       throw new AppError("User not found", 404);
     }
 
-    // Mock statistics - in production, these would be calculated from actual data
+    // Get actual notification count and create sample notifications if none exist
+    let unreadNotifications = await Notification.getUnreadCount(userId);
+
+    // Create sample notifications if user has none
+    if (unreadNotifications === 0) {
+      const sampleNotifications = [
+        {
+          title: "Welcome to ICAN Portal",
+          message:
+            "Welcome to the ICAN member portal! Explore all the features available to enhance your professional development.",
+          type: "general",
+          priority: "medium",
+          actionUrl: "/profile",
+          actionText: "Complete Profile",
+        },
+        {
+          title: "CPD Points Update",
+          message:
+            "Your CPD points have been updated. You currently have " +
+            user.cpdPoints +
+            " points.",
+          type: "cpd",
+          priority: "low",
+          actionUrl: "/cpd",
+          actionText: "View CPD Modules",
+        },
+        {
+          title: "Upcoming Events",
+          message:
+            "Don't miss out on upcoming ICAN events and workshops. Register now to secure your spot.",
+          type: "event",
+          priority: "medium",
+          actionUrl: "/events",
+          actionText: "View Events",
+        },
+      ];
+
+      await Notification.createForUser(userId, sampleNotifications[0]);
+      await Notification.createForUser(userId, sampleNotifications[1]);
+      await Notification.createForUser(userId, sampleNotifications[2]);
+
+      unreadNotifications = 3;
+    }
+
+    // Calculate statistics - mix of real and mock data
     const stats = {
       totalMembers: await User.countDocuments({ isActive: true }),
       upcomingEvents: Math.floor(Math.random() * 10) + 1, // Mock data
       activeCPDModules: Math.floor(Math.random() * 15) + 5, // Mock data
       pendingPayments: Math.floor(Math.random() * 3), // Mock data
-      unreadNotifications: Math.floor(Math.random() * 8) + 1, // Mock data
+      unreadNotifications, // Real data
       userStats: {
         cpdPoints: user.cpdPoints,
         balance: user.balance,
@@ -281,6 +326,36 @@ router.get(
     res.json({
       success: true,
       data: weather,
+    });
+  })
+);
+
+// @route   GET /api/dashboard/notifications
+// @desc    Get recent notifications for dashboard
+// @access  Private
+router.get(
+  "/notifications",
+  asyncHandler(async (req, res) => {
+    const limit = parseInt(req.query.limit) || 5;
+
+    // Get recent notifications for the user
+    const notifications = await Notification.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select(
+        "title message type priority isRead createdAt actionUrl actionText timeAgo"
+      );
+
+    // Get unread count
+    const unreadCount = await Notification.getUnreadCount(req.user._id);
+
+    res.json({
+      success: true,
+      data: {
+        notifications,
+        unreadCount,
+        total: notifications.length,
+      },
     });
   })
 );

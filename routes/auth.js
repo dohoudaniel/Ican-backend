@@ -115,58 +115,133 @@ router.post(
   asyncHandler(async (req, res) => {
     const { name, email, password, phone, membershipId } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      throw new AppError("User with this email already exists", 400);
-    }
-
-    // Check if membership ID is already taken (if provided)
-    if (membershipId) {
-      const existingMembership = await User.findOne({
-        membershipId: membershipId.toUpperCase(),
+    try {
+      // Check if user already exists with case-insensitive email
+      const existingUser = await User.findOne({
+        email: email.toLowerCase().trim(),
       });
-      if (existingMembership) {
-        throw new AppError("Membership ID already exists", 400);
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          message: "An account with this email address already exists",
+          errors: [
+            {
+              field: "email",
+              message:
+                "This email is already registered. Please use a different email or try logging in.",
+            },
+          ],
+        });
       }
+
+      // Check if phone number is already taken
+      const existingPhone = await User.findOne({ phone: phone.trim() });
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          message: "An account with this phone number already exists",
+          errors: [
+            {
+              field: "phone",
+              message:
+                "This phone number is already registered. Please use a different phone number.",
+            },
+          ],
+        });
+      }
+
+      // Check if membership ID is already taken (if provided)
+      if (membershipId) {
+        const existingMembership = await User.findOne({
+          membershipId: membershipId.toUpperCase().trim(),
+        });
+        if (existingMembership) {
+          return res.status(409).json({
+            success: false,
+            message: "This membership ID is already registered",
+            errors: [
+              {
+                field: "membershipId",
+                message:
+                  "This ICAN membership ID is already in use. Please verify your membership ID.",
+              },
+            ],
+          });
+        }
+      }
+
+      // Create user
+      const user = new User({
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        password,
+        phone: phone.trim(),
+        membershipId: membershipId?.toUpperCase().trim(),
+      });
+
+      await user.save();
+
+      // Generate tokens
+      const token = generateToken(user._id);
+      const refreshToken = generateRefreshToken(user._id);
+
+      // Save refresh token to user
+      user.refreshTokens.push({
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      });
+      await user.save();
+
+      // Remove password from response
+      const userResponse = user.toObject();
+      delete userResponse.password;
+      delete userResponse.refreshTokens;
+
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        data: {
+          user: userResponse,
+          token,
+          refreshToken,
+        },
+      });
+    } catch (error) {
+      // Handle MongoDB duplicate key errors
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyPattern)[0];
+        let message = "This information is already registered";
+        let fieldMessage = "This value is already in use";
+
+        if (field === "email") {
+          message = "An account with this email address already exists";
+          fieldMessage =
+            "This email is already registered. Please use a different email or try logging in.";
+        } else if (field === "membershipId") {
+          message = "This membership ID is already registered";
+          fieldMessage =
+            "This ICAN membership ID is already in use. Please verify your membership ID.";
+        } else if (field === "phone") {
+          message = "An account with this phone number already exists";
+          fieldMessage =
+            "This phone number is already registered. Please use a different phone number.";
+        }
+
+        return res.status(409).json({
+          success: false,
+          message,
+          errors: [
+            {
+              field,
+              message: fieldMessage,
+            },
+          ],
+        });
+      }
+
+      // Handle other errors
+      throw error;
     }
-
-    // Create user
-    const user = new User({
-      name,
-      email,
-      password,
-      phone,
-      membershipId: membershipId?.toUpperCase(),
-    });
-
-    await user.save();
-
-    // Generate tokens
-    const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-
-    // Save refresh token to user
-    user.refreshTokens.push({
-      token: refreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    });
-    await user.save();
-
-    // Remove password from response
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.refreshTokens;
-
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: {
-        user: userResponse,
-        token,
-        refreshToken,
-      },
-    });
   })
 );
 
